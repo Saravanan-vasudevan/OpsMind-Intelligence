@@ -1,0 +1,45 @@
+# V1 services: db, backend, frontend. Analytics/AI services are added in later versions.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-opsmind}
+      POSTGRES_USER: ${POSTGRES_USER:-opsmind}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-opsmind} -d ${POSTGRES_DB:-opsmind}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: Host=db;Port=5432;Database=${POSTGRES_DB:-opsmind};Username=${POSTGRES_USER:-opsmind};Password=${POSTGRES_PASSWORD}
+      Jwt__Secret: ${JWT_SECRET:?set JWT_SECRET (32+ characters) in .env}
+      # The local stack is served over plain HTTP; set true behind HTTPS.
+      Jwt__CookieSecure: ${JWT_COOKIE_SECURE:-false}
+      Database__MigrateOnStartup: "true"
+      Seed__DemoData: ${SEED_DEMO_DATA:-false}
+      Swagger__Enabled: ${SWAGGER_ENABLED:-true}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+
+volumes:
+  pgdata:

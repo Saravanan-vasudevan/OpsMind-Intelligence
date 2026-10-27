@@ -1,0 +1,17 @@
+.env
+*.user
+bin/
+obj/
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+.vs/
+.idea/
+.vscode/
+coverage/
+playwright-report/
+test-results/
+storage/

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/OpsMind.Api/OpsMind.Api.csproj" />
+  <Project Path="tests/OpsMind.Api.Tests/OpsMind.Api.Tests.csproj" />
+</Solution>
