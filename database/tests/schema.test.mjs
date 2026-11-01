@@ -35,8 +35,8 @@ before(async () => {
 });
 
 test('all migrations apply on an empty database', async () => {
-  const r = await db.query(`SELECT count(*)::int AS n FROM information_schema.tables WHERE table_schema = 'public'`);
-  assert.equal(r.rows[0].n, 11);
+  const r = await db.query(`SELECT count(*)::int AS n FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`);
+  assert.equal(r.rows[0].n, 13);
 });
 
 test('shift duration is computed for day and overnight shifts', async () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { analytics, exportsApi, plants as plantsApi } from '../api/endpoints';
+import { analytics, exportsApi, intelligence, plants as plantsApi } from '../api/endpoints';
 import type { Filters, Granularity } from '../api/types';
 import { useAsync } from '../lib/useAsync';
 import { daysAgo, formatMinutes, formatNumber, formatPercent, toIsoDate } from '../lib/format';
@@ -26,7 +26,12 @@ export function OverviewPage() {
       <PageHeader
         title="Overview"
         description="Production, availability and quality for the selected period. Figures are calculated by the API from the records you have entered."
-        actions={<a className="rounded border border-line bg-white px-3 py-1.5 text-sm font-medium hover:bg-paper" href={exportsApi.productionCsvUrl(filters)}>Export CSV</a>}
+        actions={
+          <>
+            <a className="rounded border border-line bg-white px-3 py-1.5 text-sm font-medium hover:bg-paper" href={exportsApi.productionCsvUrl(filters)}>Export CSV</a>
+            <a className="rounded border border-line bg-white px-3 py-1.5 text-sm font-medium hover:bg-paper" href={intelligence.reportUrl(filters)}>Excel report</a>
+          </>
+        }
       />
       <FilterBar filters={filters} plants={plantList.data ?? []} onChange={setFilters} />
 

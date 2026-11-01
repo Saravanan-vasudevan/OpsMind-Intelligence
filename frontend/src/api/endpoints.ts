@@ -1,5 +1,7 @@
 import { api, queryString } from './client';
 import type {
+  AnomalyEvaluation, AnomalyMethod, AnomalyResponse, ConflictPolicy, Forecast, ForecastMetric, ImportBatch, ImportKind,
+  ImportResult, ImportRowError, ImportStatus, ReliabilityRow,
   AuditLogEntry, Category, DowntimeCategory, DowntimeEvent, DowntimeReasonRow, Equipment, EquipmentStatus, Filters,
   Granularity, KpiSummary, Line, Paged, Plant, PlantComparisonRow, ProductionRecord, Role, Shift, TrendPoint, User,
 } from './types';
@@ -122,4 +124,35 @@ export const users = {
 export const auditLogs = {
   list: (query: { action?: string; page?: number; pageSize?: number }) =>
     api.get<Paged<AuditLogEntry>>(`/api/audit-logs${queryString({ ...query })}`),
+};
+
+export const reliability = {
+  list: (filters: Filters, signal?: AbortSignal) => api.get<ReliabilityRow[]>(`/api/analytics/reliability${queryString({ ...filters })}`, signal),
+};
+
+export interface ForecastQuery { metric: ForecastMetric; horizon: number; plantId?: string; equipmentId?: string }
+export interface AnomalyQuery { from?: string; to?: string; method: AnomalyMethod; plantId?: string; equipmentId?: string; threshold?: number }
+export const intelligence = {
+  forecast: (query: ForecastQuery, signal?: AbortSignal) => api.get<Forecast>(`/api/intelligence/forecast${queryString({ ...query })}`, signal),
+  anomalies: (query: AnomalyQuery, signal?: AbortSignal) => api.get<AnomalyResponse>(`/api/intelligence/anomalies${queryString({ ...query })}`, signal),
+  evaluation: (signal?: AbortSignal) => api.get<AnomalyEvaluation>('/api/intelligence/anomalies/evaluation', signal),
+  reportUrl: (filters: Filters) =>
+    `/api/intelligence/reports/operations.xlsx${queryString({ from: filters.from, to: filters.to, plantId: filters.plantId })}`,
+};
+
+export interface ImportUpload { file: File; kind: ImportKind; conflictPolicy: ConflictPolicy; strict: boolean }
+export const imports = {
+  upload: ({ file, kind, conflictPolicy, strict }: ImportUpload) => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('kind', kind);
+    form.append('conflictPolicy', conflictPolicy);
+    form.append('strict', String(strict));
+    return api.postForm<ImportResult>('/api/imports', form);
+  },
+  list: (query: { kind?: ImportKind; status?: ImportStatus; page?: number; pageSize?: number }, signal?: AbortSignal) =>
+    api.get<Paged<ImportBatch>>(`/api/imports${queryString({ ...query })}`, signal),
+  errors: (id: string, query: { page?: number; pageSize?: number } = {}, signal?: AbortSignal) =>
+    api.get<Paged<ImportRowError>>(`/api/imports/${id}/errors${queryString({ ...query })}`, signal),
+  templateUrl: (kind: ImportKind) => `/templates/${kind}_template.csv`,
 };

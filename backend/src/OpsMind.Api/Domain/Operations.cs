@@ -13,6 +13,9 @@ public class ProductionRecord : IHasUpdatedAt
     public int RunMinutes { get; set; }
     public string? Notes { get; set; }
     public Guid? CreatedBy { get; set; }
+
+    /// <summary>Set when the record came from a file import (lineage); null otherwise. Written only by the ETL service.</summary>
+    public Guid? ImportBatchId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
@@ -44,6 +47,7 @@ public class DowntimeEvent : IHasUpdatedAt
     public string ReasonCode { get; set; } = string.Empty;
     public string? Notes { get; set; }
     public Guid? CreatedBy { get; set; }
+    public Guid? ImportBatchId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

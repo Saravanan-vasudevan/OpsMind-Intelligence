@@ -24,6 +24,8 @@ const tableForEntity = {
   QualityRecord: 'quality_records',
   DowntimeEvent: 'downtime_events',
   AuditLog: 'audit_logs',
+  ImportBatch: 'import_batches',
+  ImportError: 'import_errors',
 };
 const entityNames = new Set(Object.keys(tableForEntity));
 const snake = (name) => name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();

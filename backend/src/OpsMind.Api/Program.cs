@@ -40,6 +40,14 @@ builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<AnalyticsService>();
 
+builder.Services.Configure<IntelligenceOptions>(builder.Configuration.GetSection(IntelligenceOptions.Section));
+builder.Services.AddHttpClient<IIntelligenceClient, IntelligenceClient>((provider, client) =>
+{
+    var options = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<IntelligenceOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(Math.Max(options.TimeoutSeconds, 5));
+});
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -120,7 +128,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
-builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" });
+builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" })
+    .AddCheck<IntelligenceHealthCheck>("intelligence", tags: new[] { "intelligence" });
 
 var app = builder.Build();
 
@@ -160,6 +169,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/health/intelligence", new HealthCheckOptions { Predicate = check => check.Tags.Contains("intelligence") });
 app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
 
 app.Run();

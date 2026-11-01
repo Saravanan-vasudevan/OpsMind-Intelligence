@@ -33,7 +33,7 @@ describe('api client', () => {
 
   it('turns a ProblemDetails validation response into an ApiError with field messages', async () => {
     mockFetch(400, { title: 'Validation', errors: { code: ['Code is required'] }, traceId: 'abc' });
-    const error = await api.post('/api/plants', {}).catch((e) => e as ApiError);
+    const error = (await api.post('/api/plants', {}).catch((e: unknown) => e)) as ApiError;
     expect(error).toBeInstanceOf(ApiError);
     expect(error.status).toBe(400);
     expect(error.fieldMessage('Code')).toBe('Code is required');
@@ -42,7 +42,7 @@ describe('api client', () => {
 
   it('uses the server detail message when present', async () => {
     mockFetch(409, { title: 'Conflict', detail: 'That asset code already exists.' });
-    const error = await api.post('/api/equipment', {}).catch((e) => e as ApiError);
+    const error = (await api.post('/api/equipment', {}).catch((e: unknown) => e)) as ApiError;
     expect(error.message).toBe('That asset code already exists.');
   });
 
@@ -59,7 +59,7 @@ describe('api client', () => {
 
   it('reports an unreachable server clearly', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')));
-    const error = await api.get('/api/plants').catch((e) => e as ApiError);
+    const error = (await api.get('/api/plants').catch((e: unknown) => e)) as ApiError;
     expect(error.status).toBe(0);
     expect(error.message).toMatch(/cannot reach the server/i);
   });

@@ -57,6 +57,7 @@ function toApiError(status: number, body: unknown): ApiError {
 }
 
 async function request<T>(method: string, path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
+  const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
   let response: Response;
   try {
     response = await fetch(path, {
@@ -65,9 +66,10 @@ async function request<T>(method: string, path: string, body?: unknown, signal?:
       signal,
       headers: {
         'X-Requested-With': 'OpsMind',
-        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        // For FormData the browser sets the multipart Content-Type (with its boundary) itself.
+        ...(body !== undefined && !isForm ? { 'Content-Type': 'application/json' } : {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : isForm ? (body as FormData) : JSON.stringify(body),
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error;
@@ -88,6 +90,7 @@ async function request<T>(method: string, path: string, body?: unknown, signal?:
 export const api = {
   get: <T>(path: string, signal?: AbortSignal) => request<T>('GET', path, undefined, signal),
   post: <T>(path: string, body?: unknown) => request<T>('POST', path, body ?? {}),
+  postForm: <T>(path: string, form: FormData) => request<T>('POST', path, form),
   put: <T>(path: string, body: unknown) => request<T>('PUT', path, body),
   delete: (path: string) => request<void>('DELETE', path),
 };

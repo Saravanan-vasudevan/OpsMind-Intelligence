@@ -15,3 +15,6 @@ coverage/
 playwright-report/
 test-results/
 storage/
+
+# generated demo files (dates are relative to the day they were generated)
+data/demo/*.csv

@@ -28,6 +28,8 @@ public class OpsMindDbContext : DbContext
     public DbSet<QualityRecord> QualityRecords => Set<QualityRecord>();
     public DbSet<DowntimeEvent> DowntimeEvents => Set<DowntimeEvent>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<ImportBatch> ImportBatches => Set<ImportBatch>();
+    public DbSet<ImportError> ImportErrors => Set<ImportError>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -72,6 +74,8 @@ public class OpsMindDbContext : DbContext
         b.Entity<QualityRecord>().HasQueryFilter(q => q.ProductionRecord.Equipment.ProductionLine.Plant.OrganisationId == CurrentOrganisationId);
         b.Entity<DowntimeEvent>().HasQueryFilter(d => d.Equipment.ProductionLine.Plant.OrganisationId == CurrentOrganisationId);
         b.Entity<AuditLog>().HasQueryFilter(a => a.OrganisationId == CurrentOrganisationId);
+        b.Entity<ImportBatch>().HasQueryFilter(i => i.OrganisationId == CurrentOrganisationId);
+        b.Entity<ImportError>().HasQueryFilter(e => e.Batch.OrganisationId == CurrentOrganisationId);
 
         // The database enforces RESTRICT everywhere except quality rows, which follow their production record.
         foreach (var foreignKey in b.Model.GetEntityTypes().SelectMany(t => t.GetForeignKeys()))

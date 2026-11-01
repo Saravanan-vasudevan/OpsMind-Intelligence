@@ -6,6 +6,10 @@ import { Button, cx } from './ui';
 const mainLinks = [
   { to: '/', label: 'Overview', end: true },
   { to: '/records', label: 'Production & downtime' },
+  { to: '/reliability', label: 'Reliability' },
+  { to: '/forecast', label: 'Forecast' },
+  { to: '/anomalies', label: 'Anomalies' },
+  { to: '/imports', label: 'Data imports' },
   { to: '/plants', label: 'Plants' },
   { to: '/equipment', label: 'Equipment' },
 ];

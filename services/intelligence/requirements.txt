@@ -1,0 +1,10 @@
+# Versions below are the ones the tests were run with (Python 3.13).
+fastapi==0.162.0
+uvicorn==0.54.0
+python-multipart==0.0.32
+psycopg[binary]==3.3.6
+pandas==3.0.5
+numpy==2.5.3
+openpyxl==3.1.5
+statsmodels==0.15.0
+scikit-learn==1.9.1

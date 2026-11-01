@@ -1,4 +1,5 @@
-# V1 services: db, backend, frontend. Analytics/AI services are added in later versions.
+# V2 services: db, intelligence (Python: ETL, forecasting, anomalies, Excel), backend, frontend. AI services come in V3.
+# NOTE: this file has never been run by the author (no Docker daemon in the build environment). See docs/KNOWN_LIMITATIONS.md.
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -16,12 +17,26 @@ services:
       timeout: 3s
       retries: 10
 
+  # Not published on a host port: only the backend (same compose network) can call it.
+  intelligence:
+    build: ./services/intelligence
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # psycopg URL; URL-encode the password if it contains special characters.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-opsmind}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-opsmind}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?set INTERNAL_API_KEY (32+ random characters) in .env}
+      MAX_UPLOAD_BYTES: "10485760"
+
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
     depends_on:
       db:
+        condition: service_healthy
+      intelligence:
         condition: service_healthy
     environment:
       ConnectionStrings__Default: Host=db;Port=5432;Database=${POSTGRES_DB:-opsmind};Username=${POSTGRES_USER:-opsmind};Password=${POSTGRES_PASSWORD}
@@ -31,6 +46,8 @@ services:
       Database__MigrateOnStartup: "true"
       Seed__DemoData: ${SEED_DEMO_DATA:-false}
       Swagger__Enabled: ${SWAGGER_ENABLED:-true}
+      Intelligence__BaseUrl: http://intelligence:8000
+      Intelligence__InternalKey: ${INTERNAL_API_KEY}
     ports:
       - "${BACKEND_PORT:-8080}:8080"
 

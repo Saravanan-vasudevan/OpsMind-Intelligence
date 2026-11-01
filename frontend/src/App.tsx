@@ -9,6 +9,10 @@ import { RecordsPage } from './pages/RecordsPage';
 import { UsersPage } from './pages/UsersPage';
 import { AuditPage } from './pages/AuditPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ReliabilityPage } from './pages/ReliabilityPage';
+import { ForecastPage } from './pages/ForecastPage';
+import { AnomaliesPage } from './pages/AnomaliesPage';
+import { ImportsPage } from './pages/ImportsPage';
 
 export function App() {
   return (
@@ -19,6 +23,10 @@ export function App() {
         <Route element={<Layout />}>
           <Route index element={<OverviewPage />} />
           <Route path="records" element={<RecordsPage />} />
+          <Route path="reliability" element={<ReliabilityPage />} />
+          <Route path="forecast" element={<ForecastPage />} />
+          <Route path="anomalies" element={<AnomaliesPage />} />
+          <Route path="imports" element={<ImportsPage />} />
           <Route path="plants" element={<PlantsPage />} />
           <Route path="plants/:plantId" element={<PlantDetailPage />} />
           <Route path="equipment" element={<EquipmentPage />} />

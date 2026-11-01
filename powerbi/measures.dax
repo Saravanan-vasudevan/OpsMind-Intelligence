@@ -1,0 +1,60 @@
+// OpsMind measures. Definitions are the same as docs/KPI_DEFINITIONS.md and the SQL in database/migrations/002.
+// These have NOT been run in Power BI Desktop (not available when this was written). The logic is reconciled with SQL in
+// services/intelligence/tests/test_bi_model.py; DAX syntax itself is unverified, so expect to fix small things on first load.
+// Model: see README.md (relationships and the one-direction filters).
+
+-- Base sums -------------------------------------------------------------------------------------------------
+Units Produced        = SUM ( fact_production[units_produced] )
+Target Units          = SUM ( fact_production[target_units] )
+Run Minutes           = SUM ( fact_production[run_minutes] )
+Scheduled Minutes     = SUM ( fact_production[scheduled_minutes] )
+Inspected Units       = SUM ( fact_production[inspected_units] )
+Rejected Units        = SUM ( fact_production[rejected_units] )
+
+Planned Downtime Min  = CALCULATE ( SUM ( fact_downtime[duration_minutes] ), fact_downtime[category] = "Planned" )
+Unplanned Downtime Min= CALCULATE ( SUM ( fact_downtime[duration_minutes] ), fact_downtime[category] = "Unplanned" )
+Failures              = CALCULATE ( COUNTROWS ( fact_downtime ), fact_downtime[category] = "Unplanned" )
+
+-- KPIs: BLANK() (not 0) when the denominator is zero, matching the API --------------------------------------
+Target Attainment     = DIVIDE ( [Units Produced], [Target Units] )
+Utilisation           = DIVIDE ( [Run Minutes], [Scheduled Minutes] )
+Defect Rate           = DIVIDE ( [Rejected Units], [Inspected Units] )
+
+Available Minutes     = [Scheduled Minutes] - [Planned Downtime Min]
+Availability          =
+    VAR avail = [Available Minutes]
+    RETURN IF ( avail > 0, MAX ( 0, DIVIDE ( avail - [Unplanned Downtime Min], avail ) ) )
+
+-- Reliability -------------------------------------------------------------------------------------------------
+MTBF Minutes          = DIVIDE ( [Run Minutes], [Failures] )                  -- blank when there was no failure
+MTTR Minutes          = DIVIDE ( [Unplanned Downtime Min], [Failures] )
+
+-- Trend and comparison -----------------------------------------------------------------------------------------
+Units Previous 7 Days = CALCULATE ( [Units Produced], DATEADD ( dim_date[date], -7, DAY ) )
+Units vs Previous 7 Days % = DIVIDE ( [Units Produced] - [Units Previous 7 Days], [Units Previous 7 Days] )
+
+Units 7-Day Average   =
+    VAR lastDay = MAX ( dim_date[date] )
+    RETURN
+        CALCULATE (
+            DIVIDE ( [Units Produced], DISTINCTCOUNT ( dim_date[date] ) ),
+            DATESINPERIOD ( dim_date[date], lastDay, -7, DAY )
+        )
+
+-- Pareto: share of unplanned downtime by reason, cumulative when reasons are sorted by minutes ---------------
+Unplanned Share of Total =
+    DIVIDE ( [Unplanned Downtime Min], CALCULATE ( [Unplanned Downtime Min], ALL ( dim_downtime_reason ) ) )
+
+Cumulative Unplanned Share =
+    VAR current = [Unplanned Downtime Min]
+    VAR reasons = ALLSELECTED ( dim_downtime_reason[reason_code] )
+    VAR higher =
+        FILTER ( reasons, CALCULATE ( [Unplanned Downtime Min] ) >= current )
+    RETURN
+        DIVIDE (
+            SUMX ( higher, CALCULATE ( [Unplanned Downtime Min] ) ),
+            CALCULATE ( [Unplanned Downtime Min], ALLSELECTED ( dim_downtime_reason ) )
+        )
+
+-- Display helper ---------------------------------------------------------------------------------------------
+Data Label = "Synthetic demonstration data unless you loaded your own records"
