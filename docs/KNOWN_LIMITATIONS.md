@@ -1,9 +1,9 @@
 # Known limitations (V2)
 
 ## Verification gaps (most important)
-- **The C# backend (V1 and V2) has never been compiled or run.** No .NET SDK in the build environment. C# was only parsed with tree-sitter (syntax). New in V2 and unverified: `IntelligenceClient`, `IntelligenceController`, `ImportsController`, `ReliabilityController`, DI registration, the `Database.SqlQuery<ReliabilityDbRow>` call (column mapping of a `numeric`/`bigint` function result), multipart binding of `ImportUploadRequest`, and the new xUnit tests (13 written, none run).
+- **The ASP.NET API still needs live integration testing.** The Release build and 67 xUnit cases pass. The tests use EF Core in-memory and fake HTTP handlers where applicable. Startup and dependency injection, PostgreSQL query translation and reliability result mapping, and multipart binding over HTTP still need verification.
 - **Docker images and `docker compose up` have never been run** (no Docker daemon). That includes the new `intelligence` service image, health checks and the nginx upload settings.
-- **The React ↔ ASP.NET ↔ Python chain has not been run end to end.** Each hop is tested separately: React against mocked `fetch`; the Python service over real HTTP against real PostgreSQL (`tools/smoke_intelligence.py`); ASP.NET not at all.
+- **The React ↔ ASP.NET ↔ Python chain has not been run end to end.** Each hop is tested separately: React against mocked `fetch`; the Python service over real HTTP against real PostgreSQL (`tools/smoke_intelligence.py`); ASP.NET through unit tests.
 - **Power BI**: Power Query and DAX have not been opened in Power BI Desktop. The data model and the measure logic are reconciled in SQL/pandas only.
 - Frontend has no browser (Playwright) tests.
 
@@ -20,7 +20,7 @@
 ## Carried over from V1
 - Editing a shift's times does not re-validate existing production records.
 - Token validity is rechecked against the database on every request.
-- `KnownNetworks` is cleared (trusts forwarded headers from any proxy); tighten for public deployment.
+- `KnownIPNetworks` and `KnownProxies` are cleared (trusts forwarded headers from any proxy); tighten for public deployment.
 - No password reset / email flow, no account lockout beyond the per-IP rate limit.
 - No shift filter on analytics; no OEE performance factor.
 - Frontend is one large JS chunk (~700 kB+), no code splitting.

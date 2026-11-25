@@ -24,13 +24,13 @@ React dashboards, forecast, anomalies, reliability, Excel export ◄── ASP.N
 | Anomalies | Weekday-aware robust z-score and isolation forest, plain-language explanations, a labelled **synthetic** benchmark with its limits shown in the UI — `docs/ANOMALY_DETECTION.md` |
 | Excel | Operations report with live KPI formulas (verified by recalculation), reliability, downtime reasons, anomalies |
 | Power BI | Power Query, DAX measures, model notes — `powerbi/` (not opened in Power BI Desktop) |
-| Tests | Python 142, SQL 26, frontend 51 — all run; C# 51 methods written, **not run** — `docs/TESTING.md` |
+| Tests | Python 142, SQL 26, frontend 51, C# 67 — `docs/TESTING.md` |
 
 V1 features (auth, structure, data entry, KPIs, CSV export, audit log, tenancy) are unchanged; see `docs/V1_TO_V2.md`.
 
-## Verification status — read this first
+## Verification status
 
-Neither the V1 nor the V2 build environment had a **.NET SDK or a Docker daemon**.
+The current V2 backend builds in Release with the .NET 10 SDK and passes all 67 xUnit test cases.
 
 | Item | Status |
 |---|---|
@@ -38,13 +38,11 @@ Neither the V1 nor the V2 build environment had a **.NET SDK or a Docker daemon*
 | Python ETL, forecasting, anomalies, Excel, service API | **Tested** against real PostgreSQL 16 — 142 tests; plus a real-HTTP smoke run (13 checks) |
 | Excel formulas | **Recalculated in LibreOffice** and compared with SQL |
 | Frontend typecheck, build, 51 component tests | **Passed** (mocked `fetch`, jsdom) |
-| C# syntax | Parsed with tree-sitter only |
-| **C# compile, EF translation, xUnit tests** (V1 and V2 code) | **NOT verified** |
+| C# Release build and xUnit suite | **Passed** on .NET SDK 10.0.401 (67 test cases) |
+| ASP.NET API against PostgreSQL | EF Core SQL translation and reliability result mapping still need runtime verification |
 | **Docker images / `docker compose up`** | **NOT verified** |
-| **React ↔ ASP.NET ↔ Python end to end** | **NOT verified** — each hop is tested separately, the ASP.NET hop not at all |
+| **React ↔ ASP.NET ↔ Python end to end** | **NOT verified** |
 | Power BI Power Query / DAX | **NOT verified** (logic reconciled in SQL/pandas only) |
-
-Expect to fix a few compile or EF errors the first time you build the backend (`docs/DEV_LOG.md` lists the kind of thing found by review). Do not treat the application as working end to end until you have run it.
 
 ## How good is the anomaly detection? (short, honest answer)
 

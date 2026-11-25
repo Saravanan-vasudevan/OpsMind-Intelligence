@@ -104,7 +104,11 @@ public class ImportsControllerTests
         var onlyDowntime = (await controller.List(new ImportListQuery { Kind = "downtime" }, default)).Value!;
         Assert.Equal("a2.csv", Assert.Single(onlyDowntime.Items).FileName);
         Assert.Empty((await controller.List(new ImportListQuery { Status = "Failed" }, default)).Value!.Items);
-        Assert.IsType<ObjectResult>((await controller.List(new ImportListQuery { Kind = "bogus" }, default)).Result);
+        var invalidKind = await controller.List(new ImportListQuery { Kind = "bogus" }, default);
+        var response = Assert.IsAssignableFrom<ObjectResult>(invalidKind.Result);
+        Assert.Equal(StatusCodes.Status400BadRequest, response.StatusCode);
+        var details = Assert.IsType<ValidationProblemDetails>(response.Value);
+        Assert.Contains(nameof(ImportListQuery.Kind), details.Errors.Keys);
     }
 
     [Fact]
